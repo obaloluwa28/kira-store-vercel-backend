@@ -6,23 +6,18 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-
-  methods: [
-    'GET',
-    'POST',
-    'PUT',
-    'DELETE'
-  ],
-
-  credentials: true,
-
-  allowedHeaders: [
-    'Content-Type',
-  ]
+  // origin: ['http://localhost:3000', 'http://localhost:3001', 'https://lightmaxsofttech.com/', '*'],
+  origin: 'https://kirastores.com',
+  methods: ['GET','POST','PUT','DELETE'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true
 };
 
+// Use CORS middleware
 app.use(cors(corsOptions));
+
+// Handle OPTIONS requests (preflight)
+app.options('*', cors(corsOptions));
 
 app.use(cookieParser());
 app.use("/", express.static("uploads"));
