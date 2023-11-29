@@ -7,7 +7,7 @@ const cors = require("cors");
 
 const corsOptions = {
   // origin: ['http://localhost:3000', 'http://localhost:3001', 'https://lightmaxsofttech.com/', '*'],
-  origin: 'https://kirastores.com',
+  origin: ['http://localhost:3000', 'https://kirastores.com'],
   methods: ['GET','POST','PUT','DELETE'],
   allowedHeaders: ['Content-Type'],
   credentials: true
