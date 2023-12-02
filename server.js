@@ -31,7 +31,7 @@ cloudinary.config({
 // create server
 const server = app.listen(port, () => {
   console.log(
-    `Server is running on http://localhost:${port}`
+    `Server is running on https://kirastores.com:${port}`
   );
 });
 
