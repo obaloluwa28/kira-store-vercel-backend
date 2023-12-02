@@ -44,7 +44,7 @@ router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
     try {
       await sendMail({
         email: seller.email,
-        subject: "Activate your Shop",
+        subject: "Account Activation",
         message: `Dear ${seller.name}, \n\nKindly click on the link to activate your shop's account: ${activationUrl}. This link expires in 5 minutes`,
       });
       res.status(201).json({
