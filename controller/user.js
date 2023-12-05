@@ -41,8 +41,6 @@ router.post("/create-user", async (req, res, next) => {
       },
     };
 
-    console.log(user)
-
     const activationToken = createActivationToken(user);
 
     const activationUrl = `https://kirastores.com/activation/${activationToken}`;
@@ -58,7 +56,7 @@ router.post("/create-user", async (req, res, next) => {
         message: `please check your email:- ${user.email} to activate your account!`,
       });
     } catch (error) {
-      console.log(error.message, 500)
+      // console.log(error.message, 500)
       return next(new ErrorHandler(error.message, 500));
     }
   } catch (error) {
