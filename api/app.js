@@ -6,28 +6,29 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 
 const corsOptions = {
-  // origin: ['http://localhost:3000', 'http://localhost:3001', 'https://lightmaxsofttech.com/', '*'],
-  origin: ['http://localhost:3000', 'https://kirastores.com'],
-  methods: ['GET','POST','PUT','DELETE'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://kirastores.com'],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"],
+  credentials: true,
 };
 
 // Use CORS middleware
 app.use(cors(corsOptions));
 
 // Handle OPTIONS requests (preflight)
-app.options('*', cors(corsOptions));
+// app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 app.use("/", express.static("uploads"));
 
-app.use(express.json({limit: '500mb'}));
-app.use(express.urlencoded({
-  limit: '500mb', 
-  parameterLimit: 100000000, 
-  extended: true
-}));
+app.use(express.json({ limit: "500mb" }));
+app.use(
+  express.urlencoded({
+    limit: "500mb",
+    parameterLimit: 100000000,
+    extended: true,
+  })
+);
 
 // config
 if (process.env.NODE_ENV !== "PRODUCTION") {

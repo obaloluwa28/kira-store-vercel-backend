@@ -7,7 +7,7 @@ const port = process.env.PORT || 4000
 
 // Handling uncaught Exception
 process.on("uncaughtException", (err) => {
-  console.log(`Error: ${err.message}`);
+  //console.log(`Error: ${err.message}`);
 });
 
 // config
@@ -36,7 +36,7 @@ const server = app.listen(port, () => {
 
 // unhandled promise rejection
 process.on("unhandledRejection", (err) => {
-  console.log(`Shutting down the server for ${err.message}`);
+  //console.log(`Shutting down the server for ${err.message}`);
   server.close(() => {
     process.exit(1);
   });
