@@ -11,9 +11,9 @@ const ErrorHandler = require("../utils/ErrorHandler");
 // var cloudinary = require("cloudinary").v2;
 
 cloudinary.config({
-  cloud_name: 'dswna4lpk',
-  api_key: '131168243967247',
-  api_secret: 'mHFWI-Lw6oYk4wIueQ6wAh18GcU'
+  cloud_name: "dswna4lpk",
+  api_key: "131168243967247",
+  api_secret: "mHFWI-Lw6oYk4wIueQ6wAh18GcU",
 });
 
 const opts = {
@@ -25,32 +25,40 @@ const opts = {
 const uploadImage = (image) => {
   //imgage = > base64
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(image, opts, (error, result) => {
-      if (result && result.secure_url) {
-        return resolve(result.secure_url);
+    cloudinary.uploader.upload(
+      image,
+      opts,
+      (error, result) => {
+        if (result && result.secure_url) {
+          return resolve(result.secure_url);
+        }
+        return reject({ message: error.message });
+      },
+      {
+        folder: "kira_store",
+        use_filename: true,
       }
-      return reject({ message: error.message });
-    }, 
-    {
-      folder: "kira_store",
-      use_filename: true
-    });
+    );
   });
 };
 
 module.exports = (image) => {
   //imgage = > base64
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(image, opts, (error, result) => {
-      if (result && result.secure_url) {
-        return resolve(result.secure_url, result.public_id);
+    cloudinary.uploader.upload(
+      image,
+      opts,
+      (error, result) => {
+        if (result && result.secure_url) {
+          return resolve(result.secure_url, result.public_id);
+        }
+        return reject({ message: error.message });
+      },
+      {
+        folder: "kira_store",
+        use_filename: true,
       }
-      return reject({ message: error.message });
-    }, 
-    {
-      folder: "kira_store",
-      use_filename: true
-    });
+    );
   });
 };
 
@@ -76,28 +84,27 @@ router.post(
         let images = [];
 
         if (typeof req.body.images === "string") {
-          images.push(req.body.images);     // if it's a single image
+          images.push(req.body.images); // if it's a single image
         } else {
-          images = req.body.images;         // if images are more than
+          images = req.body.images; // if images are more than
         }
-      
+
         const imagesLinks = [];
-      
+
         for (let i = 0; i < images.length; i++) {
           const result = await cloudinary.v2.uploader.upload(images[i], {
             folder: "products",
           });
-      
+
           imagesLinks.push({
             public_id: result.public_id,
             url: result.secure_url,
           });
         }
-      
+
         const productData = req.body;
         productData.images = imagesLinks;
         productData.shop = shop;
-
 
         const product = await Product.create(productData);
 
@@ -139,14 +146,14 @@ router.delete(
 
       if (!product) {
         return next(new ErrorHandler("Product is not found with this id", 404));
-      }    
+      }
 
       for (let i = 0; 1 < product.images.length; i++) {
         const result = await cloudinary.v2.uploader.destroy(
           product.images[i].public_id
         );
       }
-    
+
       await product.remove();
 
       res.status(201).json({
@@ -252,4 +259,100 @@ router.get(
     }
   })
 );
+
+// Fetch unique product categories --- for admin -- ecommerce
+router.get(
+  "/categories",
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 0; // Default limit to 0 (no limit) if not provided
+      const categories = await Product.distinct("category");
+
+      // If limit is specified and greater than 0, limit the number of categories
+      const limitedCategories =
+        limit > 0 ? categories.slice(0, limit) : categories;
+
+      res.status(200).json({
+        success: true,
+        categories: limitedCategories,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Fetch products by category with an optional limit --- for admin -- ecommerce
+router.get(
+  "/categories/:category",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const category = req.params.category;
+      const limit = parseInt(req.query.limit, 10) || 0; // Default limit to 0 (no limit) if not provided
+
+      const products = await Product.find({ category }).limit(limit);
+
+      if (!products.length) {
+        return next(
+          new ErrorHandler("No products found in this category", 404)
+        );
+      }
+      res.status(200).json({
+        success: true,
+        products,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// Fetch product by id --- for admin -- ecommerce
+router.get(
+  "/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params.id);
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+      res.status(200).json({
+        success: true,
+        product,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// all products --- for admin -- ecommerce
+router.get(
+  "/",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const limit = parseInt(req.query.limit, 10) || 0; // Default limit to 0 (no limit) if not provided
+
+      const products = await Product.find()
+        .sort({
+          createdAt: -1,
+        })
+        .limit(limit);
+
+      res.status(201).json({
+        success: true,
+        products,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
 module.exports = router;
