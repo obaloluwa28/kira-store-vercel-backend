@@ -11,71 +11,79 @@ const ErrorHandler = require("../utils/ErrorHandler");
 const sendShopToken = require("../utils/shopToken");
 
 // create shop
-router.post("/create-shop", catchAsyncErrors(async (req, res, next) => {
-  try {
-    const { email } = req.body;
-    const sellerEmail = await Shop.findOne({ email });
-    if (sellerEmail) {
-      return next(new ErrorHandler("User already exists", 400));
-    }
-
-    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-      folder: "avatars",
-    });
-
-
-    const seller = {
-      name: req.body.name,
-      email: email,
-      password: req.body.password,
-      avatar: {
-        public_id: myCloud.public_id,
-        url: myCloud.secure_url,
-      },
-      address: req.body.address,
-      phoneNumber: req.body.phoneNumber,
-      zipCode: req.body.zipCode,
-    };
-
-    const activationToken = createActivationToken(seller);
-
-    const activationUrl = `https://kirastores.com/seller/activation/${activationToken}`;
-
+router.post(
+  "/create-shop",
+  catchAsyncErrors(async (req, res, next) => {
     try {
-      await sendMail({
-        email: seller.email,
-        subject: "Account Activation",
-        message: `Dear ${seller.name}, \n\nKindly click on the link to activate your shop's account: ${activationUrl}. This link expires in 5 minutes`,
+      const { name, email, password, avatar, zipCode, address, phoneNumber } =
+        req.body;
+
+      // console.log("my body: ", req.body);
+      const sellerEmail = await Shop.findOne({ email });
+      if (sellerEmail) {
+        return next(new ErrorHandler("User already exists", 400));
+      }
+
+      const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+        folder: "avatars",
       });
-      res.status(201).json({
-        success: true,
-        message: `please check your email:- ${seller.email} to activate your shop!`,
-      });
+
+      const seller = {
+        name,
+        email,
+        password,
+        avatar,
+        address,
+        phoneNumber,
+        zipCode,
+      };
+
+      const activationToken = createActivationToken(seller);
+
+      const activationUrl = `https://kirastores.com/seller/activation/${activationToken}`;
+
+      try {
+        await sendMail({
+          email: seller.email,
+          subject: "Account Activation",
+          message: `Dear ${seller.name}, \n\nKindly click on the link to activate your shop's account: ${activationUrl}. This link expires in 5 minutes`,
+        });
+        res.status(201).json({
+          success: true,
+          message: `please check your email:- ${seller.email} to activate your shop!`,
+        });
+      } catch (error) {
+        return next(new ErrorHandler(error.message, 500));
+      }
     } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
+      return next(new ErrorHandler(error.message, 400));
     }
-  } catch (error) {
-    return next(new ErrorHandler(error.message, 400));
-  }
-}));
+  })
+);
 
 // create activation token
 const createActivationToken = (seller) => {
+  // console.log("our Seller: ", seller);
   return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
     expiresIn: "5m",
   });
 };
 
 // activate user
-router.post("/activation",
+router.post(
+  "/activation",
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { activation_token } = req.body;
+
+      // console.log("Activation: ", activation_token);
 
       const newSeller = jwt.verify(
         activation_token,
         process.env.ACTIVATION_SECRET
       );
+
+      // console.log("new seller: ", newSeller);
 
       if (!newSeller) {
         return next(new ErrorHandler("Invalid token", 400));
@@ -84,6 +92,8 @@ router.post("/activation",
         newSeller;
 
       let seller = await Shop.findOne({ email });
+
+      // console.log("my seller: ", seller);
 
       if (seller) {
         return next(new ErrorHandler("User already exists", 400));
@@ -99,15 +109,19 @@ router.post("/activation",
         phoneNumber,
       });
 
+      // console.log("seller: ", seller);
+
       sendShopToken(seller, 201, res);
     } catch (error) {
+      // console.log("error: ", error.message);
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
 
 // login shop
-router.post("/login-shop",
+router.post(
+  "/login-shop",
   catchAsyncErrors(async (req, res, next) => {
     try {
       const { email, password } = req.body;
@@ -138,7 +152,8 @@ router.post("/login-shop",
 );
 
 // load shop
-router.get("/getSeller",
+router.get(
+  "/getSeller",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -159,7 +174,8 @@ router.get("/getSeller",
 );
 
 // log out from shop
-router.get("/logout",
+router.get(
+  "/logout",
   catchAsyncErrors(async (req, res, next) => {
     try {
       res.cookie("seller_token", null, {
@@ -179,7 +195,8 @@ router.get("/logout",
 );
 
 // get shop info
-router.get("/get-shop-info/:id",
+router.get(
+  "/get-shop-info/:id",
   catchAsyncErrors(async (req, res, next) => {
     try {
       const shop = await Shop.findById(req.params.id);
@@ -194,32 +211,32 @@ router.get("/get-shop-info/:id",
 );
 
 // update shop profile picture
-router.put("/update-shop-avatar",
+router.put(
+  "/update-shop-avatar",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
       let existsSeller = await Shop.findById(req.seller._id);
 
-        const imageId = existsSeller.avatar.public_id;
+      const imageId = existsSeller.avatar.public_id;
 
-        await cloudinary.v2.uploader.destroy(imageId);
+      await cloudinary.v2.uploader.destroy(imageId);
 
-        const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-          folder: "avatars",
-          width: 150,
-        });
+      const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+        folder: "avatars",
+        width: 150,
+      });
 
-        existsSeller.avatar = {
-          public_id: myCloud.public_id,
-          url: myCloud.secure_url,
-        };
+      existsSeller.avatar = {
+        public_id: myCloud.public_id,
+        url: myCloud.secure_url,
+      };
 
-  
       await existsSeller.save();
 
       res.status(200).json({
         success: true,
-        seller:existsSeller,
+        seller: existsSeller,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
@@ -228,7 +245,8 @@ router.put("/update-shop-avatar",
 );
 
 // update seller info
-router.put("/update-seller-info",
+router.put(
+  "/update-seller-info",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -259,7 +277,8 @@ router.put("/update-seller-info",
 );
 
 // all sellers --- for admin
-router.get("/admin-all-sellers",
+router.get(
+  "/admin-all-sellers",
   isAuthenticated,
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
@@ -278,7 +297,8 @@ router.get("/admin-all-sellers",
 );
 
 // delete seller ---admin
-router.delete("/delete-seller/:id",
+router.delete(
+  "/delete-seller/:id",
   isAuthenticated,
   isAdmin("Admin"),
   catchAsyncErrors(async (req, res, next) => {
@@ -304,7 +324,8 @@ router.delete("/delete-seller/:id",
 );
 
 // update seller withdraw methods --- sellers
-router.put("/update-payment-methods",
+router.put(
+  "/update-payment-methods",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
@@ -325,7 +346,8 @@ router.put("/update-payment-methods",
 );
 
 // delete seller withdraw merthods --- only seller
-router.delete("/delete-withdraw-method/",
+router.delete(
+  "/delete-withdraw-method/",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {

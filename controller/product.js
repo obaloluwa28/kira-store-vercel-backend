@@ -7,119 +7,254 @@ const Order = require("../model/order");
 const Shop = require("../model/shop");
 const cloudinary = require("cloudinary");
 const ErrorHandler = require("../utils/ErrorHandler");
+const apikeys = require("../config/apikey.json");
+const multer = require("multer");
+const { google } = require("googleapis");
+const fs = require("fs");
+const path = require("path");
 
-// var cloudinary = require("cloudinary").v2;
+// cloudinary.config({
+//   cloud_name: "dswna4lpk",
+//   api_key: "131168243967247",
+//   api_secret: "mHFWI-Lw6oYk4wIueQ6wAh18GcU",
+// });
 
-cloudinary.config({
-  cloud_name: "dswna4lpk",
-  api_key: "131168243967247",
-  api_secret: "mHFWI-Lw6oYk4wIueQ6wAh18GcU",
+// const opts = {
+//   overwrite: true,
+//   invalidate: true,
+//   resource_type: "auto",
+// };
+
+// const uploadImage = (image) => {
+//   //imgage = > base64
+//   return new Promise((resolve, reject) => {
+//     cloudinary.uploader.upload(
+//       image,
+//       opts,
+//       (error, result) => {
+//         if (result && result.secure_url) {
+//           return resolve(result.secure_url);
+//         }
+//         return reject({ message: error.message });
+//       },
+//       {
+//         folder: "kira_store",
+//         use_filename: true,
+//       }
+//     );
+//   });
+// };
+
+// module.exports = (image) => {
+//   //imgage = > base64
+//   return new Promise((resolve, reject) => {
+//     cloudinary.uploader.upload(
+//       image,
+//       opts,
+//       (error, result) => {
+//         if (result && result.secure_url) {
+//           return resolve(result.secure_url, result.public_id);
+//         }
+//         return reject({ message: error.message });
+//       },
+//       {
+//         folder: "kira_store",
+//         use_filename: true,
+//       }
+//     );
+//   });
+// };
+
+// module.exports.uploadMultipleImages = (images) => {
+//   return new Promise((resolve, reject) => {
+//     const uploads = images.map((base) => uploadImage(base));
+//     Promise.all(uploads)
+//       .then((values) => resolve(values))
+//       .catch((err) => reject(err));
+//   });
+// };
+
+// Ensure the 'kirasurf' folder exists
+
+const uploadDir = path.join(__dirname, "kirasurf");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// Configure multer to save files in 'kirasurf' folder
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadDir);
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
 });
+const upload = multer({ storage: storage });
 
-const opts = {
-  overwrite: true,
-  invalidate: true,
-  resource_type: "auto",
-};
+const SCOPE = ["https://www.googleapis.com/auth/drive"];
 
-const uploadImage = (image) => {
-  //imgage = > base64
+async function authorize() {
+  const jwtClient = new google.auth.JWT(
+    apikeys.client_email,
+    null,
+    apikeys.private_key,
+    SCOPE
+  );
+
+  await jwtClient.authorize();
+
+  return jwtClient;
+}
+
+async function uploadFile(authClient, filePath, originalname, mimeType) {
   return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      image,
-      opts,
-      (error, result) => {
-        if (result && result.secure_url) {
-          return resolve(result.secure_url);
-        }
-        return reject({ message: error.message });
-      },
+    const drive = google.drive({ version: "v3", auth: authClient });
+
+    const fileMetaData = {
+      name: originalname, // Use the original file name
+      parents: ["1MZ00DrpWUnvrSGPDs49DIIZyT0lNaAtW"], // Replace with your Google Drive folder ID - Kirasurf
+    };
+
+    drive.files.create(
       {
-        folder: "kira_store",
-        use_filename: true,
+        resource: fileMetaData,
+        media: {
+          body: fs.createReadStream(filePath), // file that will get uploaded
+          mimeType: mimeType,
+        },
+        fields: "id",
+      },
+      function (error, file) {
+        if (error) {
+          return reject(error);
+        }
+        resolve(file);
       }
     );
   });
-};
+}
 
-module.exports = (image) => {
-  //imgage = > base64
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      image,
-      opts,
-      (error, result) => {
-        if (result && result.secure_url) {
-          return resolve(result.secure_url, result.public_id);
-        }
-        return reject({ message: error.message });
-      },
-      {
-        folder: "kira_store",
-        use_filename: true,
-      }
-    );
-  });
-};
+// // create product
 
-module.exports.uploadMultipleImages = (images) => {
-  return new Promise((resolve, reject) => {
-    const uploads = images.map((base) => uploadImage(base));
-    Promise.all(uploads)
-      .then((values) => resolve(values))
-      .catch((err) => reject(err));
-  });
-};
+// router.post(
+//   "/create-product",
+//   catchAsyncErrors(async (req, res, next) => {
+//     try {
+//       const shopId = req.body.shopId;
+//       const shop = await Shop.findById(shopId);
+//       if (!shop) {
+//         return next(new ErrorHandler("Shop Id is invalid!", 400));
+//       } else {
+//         let images = [];
 
-// create product
+//         if (typeof req.body.images === "string") {
+//           images.push(req.body.images); // if it's a single image
+//         } else {
+//           images = req.body.images; // if images are more than
+//         }
+
+//         const imagesLinks = [];
+
+//         for (let i = 0; i < images.length; i++) {
+//           const result = await cloudinary.v2.uploader.upload(images[i], {
+//             folder: "products",
+//           });
+
+//           imagesLinks.push({
+//             public_id: result.public_id,
+//             url: result.secure_url,
+//           });
+//         }
+
+//         const productData = req.body;
+//         productData.images = imagesLinks;
+//         productData.shop = shop;
+
+//         const product = await Product.create(productData);
+
+//         res.status(201).json({
+//           success: true,
+//           product,
+//         });
+//       }
+//     } catch (error) {
+//       return next(new ErrorHandler(error, 400));
+//     }
+//   })
+// );
+
+// get all products of a shop
+
 router.post(
   "/create-product",
+  upload.array("images", 10), // Adjust the number of files as needed
   catchAsyncErrors(async (req, res, next) => {
     try {
+      console.log("here");
       const shopId = req.body.shopId;
+      // console.log(req.files);
       const shop = await Shop.findById(shopId);
       if (!shop) {
         return next(new ErrorHandler("Shop Id is invalid!", 400));
-      } else {
-        let images = [];
-
-        if (typeof req.body.images === "string") {
-          images.push(req.body.images); // if it's a single image
-        } else {
-          images = req.body.images; // if images are more than
-        }
-
-        const imagesLinks = [];
-
-        for (let i = 0; i < images.length; i++) {
-          const result = await cloudinary.v2.uploader.upload(images[i], {
-            folder: "products",
-          });
-
-          imagesLinks.push({
-            public_id: result.public_id,
-            url: result.secure_url,
-          });
-        }
-
-        const productData = req.body;
-        productData.images = imagesLinks;
-        productData.shop = shop;
-
-        const product = await Product.create(productData);
-
-        res.status(201).json({
-          success: true,
-          product,
-        });
       }
+
+      const images = req.files; // Access the uploaded files
+      if (!images || images.length === 0) {
+        return next(new ErrorHandler("No images provided", 400));
+      }
+
+      const imagesLinks = [];
+
+      for (const file of images) {
+        const filePath = path.join(uploadDir, file.filename);
+        const fileName = file.originalname;
+        const mimeType = file.mimetype;
+        const authClient = await authorize();
+        const result = await uploadFile(
+          authClient,
+          filePath,
+          fileName,
+          mimeType
+        );
+
+        const fileId = result.data.id;
+        await google
+          .drive({ version: "v3", auth: await authorize() })
+          .permissions.create({
+            fileId: fileId,
+            requestBody: {
+              role: "reader",
+              type: "anyone",
+            },
+          });
+
+        const fileUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+        imagesLinks.push({
+          public_id: fileId,
+          url: fileUrl,
+        });
+
+        // Clean up the uploaded file from local storage
+        fs.unlinkSync(filePath);
+      }
+
+      const productData = req.body;
+      productData.images = imagesLinks;
+      productData.shop = shop;
+
+      const product = await Product.create(productData);
+
+      res.status(201).json({
+        success: true,
+        product,
+      });
     } catch (error) {
-      return next(new ErrorHandler(error, 400));
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );
 
-// get all products of a shop
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {

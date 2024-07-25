@@ -8,8 +8,9 @@ const cors = require("cors");
 const corsOptions = {
   origin: [
     "http://localhost:3000",
-    "http://localhost:3002",
+    "http://localhost:3001",
     "https://kirastores.com",
+    "https://kirasurf.com",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
@@ -53,6 +54,7 @@ const conversation = require("../controller/conversation");
 const message = require("../controller/message");
 const withdraw = require("../controller/withdraw");
 const category = require("../controller/categoryController");
+const upload = require("../controller/uploadfile");
 
 app.use("/api/v2/user", user);
 app.use("/api/v2/conversation", conversation);
@@ -65,6 +67,7 @@ app.use("/api/v2/coupon", coupon);
 app.use("/api/v2/payment", payment);
 app.use("/api/v2/withdraw", withdraw);
 app.use("/api/v2/category", category);
+app.use("/api/v2/upload", upload);
 
 // it's for ErrorHandling
 app.use(ErrorHandler);
