@@ -134,9 +134,9 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log("olaniyi: ", req.user);
+      // console.log("olaniyi: ", req.user);
       const user = await User.findById(req.user.id);
-      console.log("obaloluwa: ", user);
+      // console.log("obaloluwa: ", user);
 
       if (!user) {
         return next(new ErrorHandler("User doesn't exists", 400));
@@ -373,6 +373,8 @@ router.get(
       const users = await User.find().sort({
         createdAt: -1,
       });
+
+      // console.log("Users: ", users);
       res.status(201).json({
         success: true,
         users,

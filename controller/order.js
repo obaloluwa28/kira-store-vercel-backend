@@ -6,6 +6,7 @@ const { isAuthenticated, isSeller, isAdmin } = require("../middleware/auth");
 const Order = require("../model/order");
 const Shop = require("../model/shop");
 const Product = require("../model/product");
+const sendMail = require("../utils/sendMail"); // Import sendMail function
 
 // create new order
 router.post(
@@ -14,7 +15,7 @@ router.post(
     try {
       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
 
-      //   group cart items by shopId
+      // Group cart items by shopId
       const shopItemsMap = new Map();
 
       for (const item of cart) {
@@ -25,7 +26,7 @@ router.post(
         shopItemsMap.get(shopId).push(item);
       }
 
-      // create an order for each shop
+      // Create an order for each shop
       const orders = [];
 
       for (const [shopId, items] of shopItemsMap) {
@@ -37,6 +38,35 @@ router.post(
           paymentInfo,
         });
         orders.push(order);
+
+        // Send email to buyer
+        const buyerEmailOptions = {
+          email: user.email,
+          subject: "Order Placed Successfully",
+          message: `Dear ${
+            user.name
+          },\n\nYour order for the following products has been successfully placed:\n${items
+            .map((item) => `- ${item.name}`)
+            .join(
+              "\n"
+            )}\n\nYour order will be shipped as soon as possible.\n\nThank you for shopping with us!`,
+        };
+        await sendMail(buyerEmailOptions);
+
+        // Send email to seller
+        const shop = await Shop.findById(shopId); // Assuming Shop model has a findById method
+        const sellerEmailOptions = {
+          email: shop.email, // Assuming shop.owner contains seller details
+          subject: "New Order Received",
+          message: `Dear ${
+            shop.name
+          },\n\nYou have received a new order for the following products:\n${items
+            .map((item) => `- ${item.name}`)
+            .join(
+              "\n"
+            )}\n\nPlease prepare the order for shipping.\n\nThank you!`,
+        };
+        await sendMail(sellerEmailOptions);
       }
 
       res.status(201).json({
@@ -48,6 +78,48 @@ router.post(
     }
   })
 );
+
+// // create new order
+// router.post(
+//   "/create-order",
+//   catchAsyncErrors(async (req, res, next) => {
+//     try {
+//       const { cart, shippingAddress, user, totalPrice, paymentInfo } = req.body;
+
+//       //   group cart items by shopId
+//       const shopItemsMap = new Map();
+
+//       for (const item of cart) {
+//         const shopId = item.shopId;
+//         if (!shopItemsMap.has(shopId)) {
+//           shopItemsMap.set(shopId, []);
+//         }
+//         shopItemsMap.get(shopId).push(item);
+//       }
+
+//       // create an order for each shop
+//       const orders = [];
+
+//       for (const [shopId, items] of shopItemsMap) {
+//         const order = await Order.create({
+//           cart: items,
+//           shippingAddress,
+//           user,
+//           totalPrice,
+//           paymentInfo,
+//         });
+//         orders.push(order);
+//       }
+
+//       res.status(201).json({
+//         success: true,
+//         orders,
+//       });
+//     } catch (error) {
+//       return next(new ErrorHandler(error.message, 500));
+//     }
+//   })
+// );
 
 // get all orders of user
 router.get(
@@ -111,7 +183,7 @@ router.put(
       if (req.body.status === "Delivered") {
         order.deliveredAt = Date.now();
         order.paymentInfo.status = "Succeeded";
-        const serviceCharge = order.totalPrice * .10;
+        const serviceCharge = order.totalPrice * 0.1;
         await updateSellerInfo(order.totalPrice - serviceCharge);
       }
 
@@ -133,7 +205,7 @@ router.put(
 
       async function updateSellerInfo(amount) {
         const seller = await Shop.findById(req.seller.id);
-        
+
         seller.availableBalance = amount;
 
         await seller.save();

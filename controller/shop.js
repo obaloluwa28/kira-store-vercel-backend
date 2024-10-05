@@ -24,9 +24,9 @@ router.post(
         return next(new ErrorHandler("User already exists", 400));
       }
 
-      const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-        folder: "avatars",
-      });
+      // const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
+      //   folder: "avatars",
+      // });
 
       const seller = {
         name,
@@ -40,7 +40,7 @@ router.post(
 
       const activationToken = createActivationToken(seller);
 
-      const activationUrl = `https://kirastores.com/seller/activation/${activationToken}`;
+      const activationUrl = `https://kirasurf.com/seller/activation/${activationToken}`;
 
       try {
         await sendMail({
