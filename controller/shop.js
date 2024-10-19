@@ -40,7 +40,7 @@ router.post(
 
       const activationToken = createActivationToken(seller);
 
-      const activationUrl = `https://kirasurf.com/seller/activation/${activationToken}`;
+      const activationUrl = `https://stores.kirasurf.com/seller/activation/${activationToken}`;
 
       try {
         await sendMail({

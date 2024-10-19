@@ -11,8 +11,9 @@ const corsOptions = {
     "http://localhost:3002",
     "https://kirastores.com",
     "http://kirastores.com",
-    "https://kirasurf.com",
-    "http://kirasurf.com",
+    "https://stores.kirasurf.com",
+    "http://stores.kirasurf.com",
+    "https://m6hsr3z5-3002.uks1.devtunnels.ms",
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type"],
@@ -75,4 +76,3 @@ app.use("/api/v2/upload", upload);
 app.use(ErrorHandler);
 
 module.exports = app;
-a;

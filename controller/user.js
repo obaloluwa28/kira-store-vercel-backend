@@ -39,7 +39,7 @@ router.post("/create-user", async (req, res, next) => {
 
     const activationToken = createActivationToken(user);
 
-    const activationUrl = `https://kirasurf.com/activation/${activationToken}`;
+    const activationUrl = `https://stores.kirasurf.com/activation/${activationToken}`;
 
     try {
       await sendMail({

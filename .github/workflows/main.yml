@@ -1,1 +1,44 @@
+on:
+  push:
+    branches:
+      - master
 
+name: 🚀 Deploy Node.js Backend on Push
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy Node.js Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: 🔨 Install dependencies
+        run: npm install
+
+      - name: Log deployment details
+        run: |
+          echo "Deploying to server: ${{ secrets.GIT_CPANEL_SERVER }}"
+          echo "Using protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}"
+
+      - name: 📂 Sync backend files
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: 107.180.117.166 # Your CPanel server IP
+          username: ${{ secrets.GIT_CPANEL_USER }}
+          password: ${{ secrets.GIT_CPANEL_PWD }}
+          protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
+          local-dir: ./ # Sync the entire project folder
+          server-dir: /path/to/backend/dir # Path where your backend project should be deployed on your server
+
+      - name: 🔄 Restart server (if needed)
+        run: |
+          ssh ${{ secrets.GIT_CPANEL_USER }}@$GIT_CPANEL_SERVER 'pm2 restart your-app-name'
+        env:
+          GIT_CPANEL_SERVER: ${{ secrets.GIT_CPANEL_SERVER }}

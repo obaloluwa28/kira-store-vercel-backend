@@ -306,7 +306,13 @@ router.get(
   "/get-all-products",
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const products = await Product.find().sort({ createdAt: -1 });
+      const category = req.query.category;
+      let products;
+      if (category) {
+        products = await Product.find({ category }).sort({ createdAt: -1 });
+      } else {
+        products = await Product.find().sort({ createdAt: -1 });
+      }
 
       res.status(201).json({
         success: true,
