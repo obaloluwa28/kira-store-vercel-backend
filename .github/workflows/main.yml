@@ -30,7 +30,7 @@ jobs:
       - name: 📂 Sync backend files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
-          server: 107.180.117.166 # Your CPanel server IP
+          server: 67.223.118.228 # Your CPanel server IP
           username: ${{ secrets.GIT_CPANEL_USER }}
           password: ${{ secrets.GIT_CPANEL_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
