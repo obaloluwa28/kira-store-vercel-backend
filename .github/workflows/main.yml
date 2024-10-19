@@ -35,7 +35,7 @@ jobs:
           password: ${{ secrets.GIT_CPANEL_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
           local-dir: ./ # Sync the entire project folder
-          server-dir: /path/to/backend/dir # Path where your backend project should be deployed on your server
+          server-dir: /home/omotqgku/kirastores-backend.omotoyecda.org # Path where your backend project should be deployed on your server
 
       - name: 🔄 Restart server (if needed)
         run: |
