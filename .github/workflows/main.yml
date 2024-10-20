@@ -34,4 +34,12 @@ jobs:
           username: ${{ secrets.GIT_CPANEL_USER }}
           password: ${{ secrets.GIT_CPANEL_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
-          server-dir: /home/omotqgku/kirastores-backend.omotoyecda.org/ # Path where your backend project should be deployed on your server\
+          local-dir: ./ # Sync the entire project folder
+          server-dir: /home/omotqgku/kirastores-backend.omotoyecda.org/ # Path where your backend project should be deployed on your server
+
+      - name: 🔄 Restart server (if needed)
+        run: |
+          ssh ${{ secrets.GIT_CPANEL_USER }}@${{ secrets.GIT_CPANEL_SERVER }} 'pm2 restart kirastores-backend'
+
+        env:
+          GIT_CPANEL_SERVER: ${{ secrets.GIT_CPANEL_SERVER }}
