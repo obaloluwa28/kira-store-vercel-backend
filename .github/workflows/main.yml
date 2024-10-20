@@ -34,4 +34,4 @@ jobs:
           username: ${{ secrets.GIT_CPANEL_USER }}
           password: ${{ secrets.GIT_CPANEL_PWD }}
           protocol: ${{ secrets.GIT_CPANEL_PROTOCOL }}
-          server-dir: /home/omotqgku/kirastores-backend.omotoyecda.org/ # Path where your backend project should be deployed on your server
+          server-dir: /home/omotqgku/kirastores-backend.omotoyecda.org/ # Path where your backend project should be deployed on your server\
