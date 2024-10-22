@@ -90,6 +90,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   },
 });
+
 const upload = multer({ storage: storage });
 
 const SCOPE = ["https://www.googleapis.com/auth/drive"];
@@ -191,7 +192,6 @@ router.post(
   upload.array("images", 10), // Adjust the number of files as needed
   catchAsyncErrors(async (req, res, next) => {
     try {
-      console.log("here");
       const shopId = req.body.shopId;
       // console.log(req.files);
       const shop = await Shop.findById(shopId);
@@ -255,6 +255,7 @@ router.post(
   })
 );
 
+// Get product by ID
 router.get(
   "/get-all-products-shop/:id",
   catchAsyncErrors(async (req, res, next) => {
@@ -267,6 +268,95 @@ router.get(
       });
     } catch (error) {
       return next(new ErrorHandler(error, 400));
+    }
+  })
+);
+
+// Update product by ID
+router.put(
+  "/update-product/:id",
+  upload.array("images", 10), // Adjust the number of files as needed
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const productId = req.params.id;
+      const product = await Product.findById(productId);
+
+      if (!product) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      const {
+        name,
+        description,
+        category,
+        tags,
+        originalPrice,
+        discountPrice,
+        stock,
+      } = req.body;
+
+      // Update product fields if they are provided in the request body
+      if (name) product.name = name;
+      if (description) product.description = description;
+      if (category) product.category = category;
+      if (tags) product.tags = tags;
+      if (originalPrice) product.originalPrice = originalPrice;
+      if (discountPrice) product.discountPrice = discountPrice;
+      if (stock) product.stock = stock;
+
+      const images = req.files; // Access the uploaded files
+      if (images && images.length > 0) {
+        const imagesLinks = [];
+
+        // Process new images
+        for (const file of images) {
+          const filePath = path.join(uploadDir, file.filename);
+          const fileName = file.originalname;
+          const mimeType = file.mimetype;
+
+          const authClient = await authorize();
+          const result = await uploadFile(
+            authClient,
+            filePath,
+            fileName,
+            mimeType
+          );
+
+          const fileId = result.data.id;
+          await google
+            .drive({ version: "v3", auth: authClient })
+            .permissions.create({
+              fileId: fileId,
+              requestBody: {
+                role: "reader",
+                type: "anyone",
+              },
+            });
+
+          const fileUrl = `https://drive.google.com/thumbnail?id=${fileId}&sz=w1000`;
+          imagesLinks.push({
+            public_id: fileId,
+            url: fileUrl,
+          });
+
+          // Clean up the uploaded file from local storage
+          fs.unlinkSync(filePath);
+        }
+
+        // Update product images with the new links
+        product.images = imagesLinks;
+      }
+
+      // Save the updated product
+      await product.save();
+
+      res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        product,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 400));
     }
   })
 );

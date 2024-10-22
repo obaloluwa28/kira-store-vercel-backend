@@ -8,6 +8,7 @@ const jwt = require("jsonwebtoken");
 const sendMail = require("../utils/sendMail");
 const sendToken = require("../utils/jwtToken");
 const { isAuthenticated, isAdmin } = require("../middleware/auth");
+const bcrypt = require("bcryptjs");
 
 // create activation token
 const createActivationToken = (user) => {
@@ -26,10 +27,6 @@ router.post("/create-user", async (req, res, next) => {
       return next(new ErrorHandler("User already exists", 400));
     }
 
-    // const myCloud = await cloudinary.v2.uploader.upload(avatar, {
-    //   folder: "avatars",
-    // });
-
     const user = {
       name: name,
       email: email,
@@ -39,20 +36,49 @@ router.post("/create-user", async (req, res, next) => {
 
     const activationToken = createActivationToken(user);
 
-    const activationUrl = `https://stores.kirasurf.com/activation/${activationToken}`;
+    const activationUrl = `${process.env.APPURL}/activation/${activationToken}`;
 
     try {
-      await sendMail({
+      const userEmailOptions = {
         email: user.email,
-        subject: "Account Activation",
-        message: `Dear ${user.name}, \n\nKindly click on the link to activate your account: ${activationUrl}. This link expires in 5 minutes`,
-      });
+        subject: "Activate Your Account - Kirasurf",
+        html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+            <h2 style="background-color: #1E90FF; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
+              Activate Your Account
+            </h2>
+            <p style="font-size: 14px; line-height: 1.5;">
+              Dear <strong>${user.name}</strong>,
+            </p>
+            <p style="font-size: 14px; line-height: 1.5;">
+              Welcome to <strong>Kirasurf</strong>! You're just a step away from getting started.
+            </p>
+            <p style="font-size: 14px; line-height: 1.5;">
+              To activate your account and start enjoying our services, please click the button below:
+            </p>
+            <div style="text-align: center; margin: 20px 0;">
+              <a href="${activationUrl}" style="background-color: #1E90FF; color: white; text-decoration: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; display: inline-block;">
+                Activate My Account
+              </a>
+            </div>
+            <p style="font-size: 14px; line-height: 1.5;">
+              Please note, this activation link is only valid for the next 5 minutes. If the link expires, you can request a new one from our platform.
+            </p>
+            <p style="font-size: 14px; line-height: 1.5;">
+              We're excited to have you onboard! If you need assistance or have any questions, our support team is here to help.
+            </p>
+            <p style="font-size: 14px; line-height: 1.5;">
+              Best regards,<br>
+              <strong>The Kirasurf Team</strong>
+            </p>
+          </div>`,
+      };
+      await sendMail(userEmailOptions);
+
       res.status(201).json({
         success: true,
         message: `please check your email:- ${user.email} to activate your account!`,
       });
     } catch (error) {
-      // //console.log(error.message, 500)
       return next(new ErrorHandler(error.message, 500));
     }
   } catch (error) {
@@ -67,6 +93,7 @@ router.post(
     try {
       const { activation_token } = req.body;
 
+      // Verify activation token
       const newUser = jwt.verify(
         activation_token,
         process.env.ACTIVATION_SECRET
@@ -75,13 +102,16 @@ router.post(
       if (!newUser) {
         return next(new ErrorHandler("Invalid token", 400));
       }
+
       const { name, email, password, avatar } = newUser;
 
+      // Check if user already exists
       let user = await User.findOne({ email });
-
       if (user) {
         return next(new ErrorHandler("User already exists", 400));
       }
+
+      // Create new user
       user = await User.create({
         name,
         email,
@@ -89,12 +119,97 @@ router.post(
         password,
       });
 
-      sendToken(user, 201, res);
+      // Send token and response (only once)
+      sendToken(user, 201, res); // Assuming sendToken already sends a response
     } catch (error) {
-      return next(new ErrorHandler(error.message, 500));
+      if (error.name === "TokenExpiredError") {
+        return res.status(400).json({ message: "Activation link expired." });
+      } else {
+        return res
+          .status(500)
+          .json({ message: "An error occurred during activation." });
+      }
     }
   })
 );
+
+// Forgot password
+router.post(
+  "/reset-password",
+  catchAsyncErrors(async (req, res, next) => {
+    const { email } = req.body;
+    try {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const resetToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "15m",
+        }
+      );
+
+      const resetUrl = `${process.env.APPURL}/reset-password/${resetToken}`;
+
+      const emailOptions = {
+        email: user.email,
+        subject: "Password Reset Request",
+        html: `
+          <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.5;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p style="margin-bottom: 20px;">
+              We received a request to reset your password. Click the button below to reset it:
+            </p>
+            <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; font-size: 14px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
+              Reset Password
+            </a>
+            <p style="margin-top: 20px;">
+              If you did not request a password reset, please ignore this email. This link will expire in 30 minutes.
+            </p>
+            <p>
+              Thanks,<br/>
+              The Support Team
+            </p>
+          </div>
+        `,
+      };
+
+      await sendMail(emailOptions);
+
+      res
+        .status(200)
+        .json({ message: "Password reset link sent to your email" });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  })
+);
+
+// Reset password
+router.post("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid token or user" });
+    }
+
+    user.password = password;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
 
 // login user
 router.post(
@@ -113,12 +228,10 @@ router.post(
         return next(new ErrorHandler("User doesn't exists!", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      let validity = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) {
-        return next(
-          new ErrorHandler("Please provide the correct information", 400)
-        );
+      if (!validity) {
+        return next(new ErrorHandler("Incorrect Username/Password", 400));
       }
 
       sendToken(user, 201, res);
@@ -134,9 +247,7 @@ router.get(
   isAuthenticated,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      // console.log("olaniyi: ", req.user);
       const user = await User.findById(req.user.id);
-      // console.log("obaloluwa: ", user);
 
       if (!user) {
         return next(new ErrorHandler("User doesn't exists", 400));
@@ -374,7 +485,6 @@ router.get(
         createdAt: -1,
       });
 
-      // console.log("Users: ", users);
       res.status(201).json({
         success: true,
         users,

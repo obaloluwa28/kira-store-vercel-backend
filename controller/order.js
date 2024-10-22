@@ -42,29 +42,79 @@ router.post(
         // Send email to buyer
         const buyerEmailOptions = {
           email: user.email,
-          subject: "Order Placed Successfully",
-          message: `Dear ${
-            user.name
-          },\n\nYour order for the following products has been successfully placed:\n${items
-            .map((item) => `- ${item.name}`)
-            .join(
-              "\n"
-            )}\n\nYour order will be shipped as soon as possible.\n\nThank you for shopping with us!`,
+          subject:
+            "Order Placed Successfully - Thank You for Shopping with Us!",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+              <h2 style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
+                Thank You for Your Order!
+              </h2>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Dear <strong>${user.name}</strong>,
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                We're thrilled to inform you that your order has been successfully placed. Below are the details of the items you’ve ordered:
+              </p>
+              <ul style="font-size: 16px; line-height: 1.5; margin: 10px 0 20px; padding: 0; list-style-type: none;">
+                ${items
+                  .map(
+                    (item) =>
+                      `<li style="padding: 10px 0; border-bottom: 1px solid #eaeaea;">- <strong>${item.name}</strong></li>`
+                  )
+                  .join("")}
+              </ul>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Your order is being processed and will be shipped shortly. You will receive an update with tracking information as soon as your package is on its way.
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Thank you for choosing us! If you have any questions or concerns, feel free to reach out to our support team.
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Best regards,<br>
+                <strong>The Sabrecwa Reward Team</strong>
+              </p>
+            </div>
+          `,
         };
         await sendMail(buyerEmailOptions);
 
         // Send email to seller
         const shop = await Shop.findById(shopId); // Assuming Shop model has a findById method
+
         const sellerEmailOptions = {
-          email: shop.email, // Assuming shop.owner contains seller details
-          subject: "New Order Received",
-          message: `Dear ${
-            shop.name
-          },\n\nYou have received a new order for the following products:\n${items
-            .map((item) => `- ${item.name}`)
-            .join(
-              "\n"
-            )}\n\nPlease prepare the order for shipping.\n\nThank you!`,
+          email: shop.email,
+          subject: "New Order Received - Action Required",
+          html: `
+            <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+              <h2 style="background-color: #e50000; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
+                New Order Notification
+              </h2>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Dear <strong>${shop.name}</strong>,
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                You’ve received a new order! Here are the details of the items purchased:
+              </p>
+              <ul style="font-size: 16px; line-height: 1.5; margin: 10px 0 20px; padding: 0; list-style-type: none;">
+                ${items
+                  .map(
+                    (item) =>
+                      `<li style="padding: 10px 0; border-bottom: 1px solid #eaeaea;">- <strong>${item.name}</strong></li>`
+                  )
+                  .join("")}
+              </ul>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Please prepare these items for shipping and mark the order as processed in your seller dashboard as soon as possible.
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Thank you for being an esteemed seller with us. If you have any questions, please don’t hesitate to contact our support team.
+              </p>
+              <p style="font-size: 16px; line-height: 1.5;">
+                Best regards,<br>
+                <strong>The Sabrecwa Reward Team</strong>
+              </p>
+            </div>
+          `,
         };
         await sendMail(sellerEmailOptions);
       }

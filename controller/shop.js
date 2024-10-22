@@ -9,6 +9,14 @@ const cloudinary = require("cloudinary");
 const catchAsyncErrors = require("../middleware/catchAsyncErrors");
 const ErrorHandler = require("../utils/ErrorHandler");
 const sendShopToken = require("../utils/shopToken");
+const bcrypt = require("bcryptjs");
+
+// create activation token
+const createActivationToken = (seller) => {
+  return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
+    expiresIn: "10m",
+  });
+};
 
 // create shop
 router.post(
@@ -24,10 +32,6 @@ router.post(
         return next(new ErrorHandler("User already exists", 400));
       }
 
-      // const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar, {
-      //   folder: "avatars",
-      // });
-
       const seller = {
         name,
         email,
@@ -40,14 +44,46 @@ router.post(
 
       const activationToken = createActivationToken(seller);
 
-      const activationUrl = `https://stores.kirasurf.com/seller/activation/${activationToken}`;
+      const activationUrl = `${process.env.APPURL}/seller/activation/${activationToken}`;
 
       try {
-        await sendMail({
+        const sellerEmailOptions = {
           email: seller.email,
-          subject: "Account Activation",
-          message: `Dear ${seller.name}, \n\nKindly click on the link to activate your shop's account: ${activationUrl}. This link expires in 5 minutes`,
-        });
+          subject: "Activate Your Shop's Account - Kirasurf Stores",
+          html: `
+                <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
+                  <h2 style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
+                    Activate Your Shop Account
+                  </h2>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    Dear <strong>${seller.name}</strong>,
+                  </p>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    Welcome to <strong>Kirasurf Stores</strong>! You’re just one step away from activating your shop's account.
+                  </p>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    To activate your account and start selling, please click the button below:
+                  </p>
+                  <div style="text-align: center; margin: 20px 0;">
+                    <a href="${activationUrl}" style="background-color: #4CAF50; color: white; text-decoration: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; display: inline-block;">
+                      Activate My Account
+                    </a>
+                  </div>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    Please note that this activation link is valid for the next 5 minutes. If the link expires, you will need to request a new one.
+                  </p>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    We’re excited to have you on board! If you encounter any issues or need further assistance, feel free to contact our support team.
+                  </p>
+                  <p style="font-size: 14px; line-height: 1.5;">
+                    Best regards,<br>
+                    <strong>The Kirasurf Stores Team</strong>
+                  </p>
+                </div>
+              `,
+        };
+        await sendMail(sellerEmailOptions);
+
         res.status(201).json({
           success: true,
           message: `please check your email:- ${seller.email} to activate your shop!`,
@@ -61,14 +97,6 @@ router.post(
   })
 );
 
-// create activation token
-const createActivationToken = (seller) => {
-  // console.log("our Seller: ", seller);
-  return jwt.sign(seller, process.env.ACTIVATION_SECRET, {
-    expiresIn: "5m",
-  });
-};
-
 // activate user
 router.post(
   "/activation",
@@ -76,14 +104,10 @@ router.post(
     try {
       const { activation_token } = req.body;
 
-      // console.log("Activation: ", activation_token);
-
       const newSeller = jwt.verify(
         activation_token,
         process.env.ACTIVATION_SECRET
       );
-
-      // console.log("new seller: ", newSeller);
 
       if (!newSeller) {
         return next(new ErrorHandler("Invalid token", 400));
@@ -92,8 +116,6 @@ router.post(
         newSeller;
 
       let seller = await Shop.findOne({ email });
-
-      // console.log("my seller: ", seller);
 
       if (seller) {
         return next(new ErrorHandler("User already exists", 400));
@@ -119,6 +141,84 @@ router.post(
   })
 );
 
+// Forgot password
+router.post(
+  "/reset-password",
+  catchAsyncErrors(async (req, res, next) => {
+    const { email } = req.body;
+    try {
+      const shop = await Shop.findOne({ email });
+
+      if (!shop) {
+        return res.status(404).json({ message: "Shop not found" });
+      }
+
+      const resetToken = jwt.sign(
+        { id: shop._id },
+        process.env.JWT_SECRET_KEY,
+        {
+          expiresIn: "15m",
+        }
+      );
+
+      const resetUrl = `${process.env.APPURL}/shop-reset-password/${resetToken}`;
+
+      const emailOptions = {
+        email: shop.email,
+        subject: "Shop Password Reset Request",
+        html: `
+          <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.5;">
+            <h2 style="color: #333;">Password Reset Request</h2>
+            <p style="margin-bottom: 20px;">
+              We received a request to reset your Store's password. Click the button below to reset it:
+            </p>
+            <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; font-size: 14px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
+              Reset Password
+            </a>
+            <p style="margin-top: 20px;">
+              If you did not request a password reset, please ignore this email. This link will expire in 15 minutes.
+            </p>
+            <p>
+              Thanks,<br/>
+              The Support Team
+            </p>
+          </div>
+        `,
+      };
+
+      await sendMail(emailOptions);
+
+      res
+        .status(200)
+        .json({ message: "Password reset link sent to your email" });
+    } catch (error) {
+      return res.status(500).json({ message: error.message });
+    }
+  })
+);
+
+// Reset password
+router.post("/reset-password/:token", async (req, res) => {
+  const { token } = req.params;
+  const { password } = req.body;
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const shop = await Shop.findById(decoded.id);
+
+    if (!shop) {
+      return res.status(400).json({ message: "Invalid token or user" });
+    }
+
+    shop.password = password;
+    await shop.save();
+
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+});
+
 // login shop
 router.post(
   "/login-shop",
@@ -136,12 +236,10 @@ router.post(
         return next(new ErrorHandler("User doesn't exists!", 400));
       }
 
-      const isPasswordValid = await user.comparePassword(password);
+      let validity = await bcrypt.compare(password, user.password);
 
-      if (!isPasswordValid) {
-        return next(
-          new ErrorHandler("Please provide the correct information", 400)
-        );
+      if (!validity) {
+        return next(new ErrorHandler("Incorrect Username/Password", 400));
       }
 
       sendShopToken(user, 201, res);
@@ -168,6 +266,7 @@ router.get(
         seller,
       });
     } catch (error) {
+      console.log(error);
       return next(new ErrorHandler(error.message, 500));
     }
   })
