@@ -272,7 +272,7 @@ router.get(
   })
 );
 
-// Update product by ID
+/// edit products of shop by ID
 router.put(
   "/update-product/:id",
   upload.array("images", 10), // Adjust the number of files as needed
