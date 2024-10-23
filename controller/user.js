@@ -68,7 +68,7 @@ router.post("/create-user", async (req, res, next) => {
             </p>
             <p style="font-size: 14px; line-height: 1.5;">
               Best regards,<br>
-              <strong>The Kirasurf Team</strong>
+              <strong>Kirasurf Support Team</strong>
             </p>
           </div>`,
       };
@@ -172,7 +172,7 @@ router.post(
             </p>
             <p>
               Thanks,<br/>
-              The Support Team
+              Kirasurf Support Team
             </p>
           </div>
         `,

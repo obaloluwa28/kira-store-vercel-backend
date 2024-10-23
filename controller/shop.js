@@ -180,7 +180,7 @@ router.post(
             </p>
             <p>
               Thanks,<br/>
-              The Support Team
+              Kirasurf Support Team
             </p>
           </div>
         `,

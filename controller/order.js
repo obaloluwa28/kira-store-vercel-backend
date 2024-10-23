@@ -71,7 +71,7 @@ router.post(
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
                 Best regards,<br>
-                <strong>The Sabrecwa Reward Team</strong>
+                <strong>Kirasurf Support Team</strong>
               </p>
             </div>
           `,
@@ -111,7 +111,7 @@ router.post(
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
                 Best regards,<br>
-                <strong>The Sabrecwa Reward Team</strong>
+                <strong>Kirasurf Support Team</strong>
               </p>
             </div>
           `,
