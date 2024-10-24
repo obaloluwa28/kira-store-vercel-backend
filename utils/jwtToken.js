@@ -17,7 +17,7 @@ const sendToken = (user, statusCode, res) => {
     path: "/",
     httpOnly: true, // Optional: Set this if you don't need to access the cookie via JavaScript
     secure: true, // Make sure this is true in production (requires HTTPS)
-    sameSite: "Lax", // Adjust based on whether you're doing cross-site requests
+    sameSite: "none", // Adjust based on whether you're doing cross-site requests
   };
 
   res.status(statusCode).cookie("token", token, options).json({
