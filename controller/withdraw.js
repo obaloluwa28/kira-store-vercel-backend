@@ -23,8 +23,8 @@ router.post(
       try {
         await sendMail({
           email: req.seller.email,
-          subject: "Withdraw Request",
-          message: `Hello ${req.seller.name}, Your withdraw request of ${amount}$ is processing. It will take 3days to 7days to processing! `,
+          subject: "Demande de retrait",
+          message: `Bonjour ${req.seller.name}, Votre demande de retrait de ${amount}$ est en cours de traitement. Le traitement prendra 3 jours à 7 jours !`,
         });
         res.status(201).json({
           success: true,
@@ -105,8 +105,8 @@ router.put(
       try {
         await sendMail({
           email: seller.email,
-          subject: "Payment confirmation",
-          message: `Hello ${seller.name}, Your withdraw request of ${withdraw.amount}$ is on the way. Delivery time depends on your bank's rules it usually takes 3days to 7days.`,
+          subject: "Confirmation de paiement",
+          message: `Bonjour ${seller.name}, Votre demande de retrait de ${withdraw.amount}$ est en cours. Le délai de livraison dépend des règles de votre banque et prend généralement entre 3 et 7 jours.`,
         });
       } catch (error) {
         return next(new ErrorHandler(error.message, 500));

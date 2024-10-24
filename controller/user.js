@@ -41,30 +41,30 @@ router.post("/create-user", async (req, res, next) => {
     try {
       const userEmailOptions = {
         email: user.email,
-        subject: "Activate Your Account - Kirasurf",
+        subject: "Activez votre compte - Kirasurf",
         html: `<div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
             <h2 style="background-color: #1E90FF; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
-              Activate Your Account
+              Activez votre compte
             </h2>
             <p style="font-size: 14px; line-height: 1.5;">
-              Dear <strong>${user.name}</strong>,
+              Cher <strong>${user.name}</strong>,
             </p>
             <p style="font-size: 14px; line-height: 1.5;">
-              Welcome to <strong>Kirasurf</strong>! You're just a step away from getting started.
+              Bienvenue à <strong>Kirasurf</strong> ! Vous n'êtes qu'à un pas du début.
             </p>
             <p style="font-size: 14px; line-height: 1.5;">
-              To activate your account and start enjoying our services, please click the button below:
+              Pour activer votre compte et commencer à profiter de nos services, veuillez cliquer sur le bouton ci-dessous :
             </p>
             <div style="text-align: center; margin: 20px 0;">
               <a href="${activationUrl}" style="background-color: #1E90FF; color: white; text-decoration: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; display: inline-block;">
-                Activate My Account
+                Activer mon compte
               </a>
             </div>
             <p style="font-size: 14px; line-height: 1.5;">
-              Please note, this activation link is only valid for the next 5 minutes. If the link expires, you can request a new one from our platform.
+              Attention, ce lien d'activation n'est valable que pour les 5 prochaines minutes. Si le lien expire, vous pouvez en demander un nouveau depuis notre plateforme.
             </p>
             <p style="font-size: 14px; line-height: 1.5;">
-              We're excited to have you onboard! If you need assistance or have any questions, our support team is here to help.
+              Nous sommes ravis de vous compter à bord ! Si vous avez besoin d'aide ou si vous avez des questions, notre équipe d'assistance est là pour vous aider.
             </p>
             <p style="font-size: 14px; line-height: 1.5;">
               Best regards,<br>
@@ -157,21 +157,21 @@ router.post(
 
       const emailOptions = {
         email: user.email,
-        subject: "Password Reset Request",
+        subject: "Demande de réinitialisation du mot de passe",
         html: `
           <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.5;">
-            <h2 style="color: #333;">Password Reset Request</h2>
+            <h2 style="color: #333;">Demande de réinitialisation du mot de passe</h2>
             <p style="margin-bottom: 20px;">
-              We received a request to reset your password. Click the button below to reset it:
+              Nous avons reçu une demande de réinitialisation de votre mot de passe. Cliquez sur le bouton ci-dessous pour le réinitialiser :
             </p>
-            <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; font-size: 14px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
-              Reset Password
+            <a href="${resetUrl}" style="display : inline-block ; padding : 10px 20px ; font-size : 14px ; couleur : #fff ; background-color : #007bff ; text-decoration : aucun ; border- rayon : 5px;">
+              Réinitialiser le mot de passe
             </a>
             <p style="margin-top: 20px;">
-              If you did not request a password reset, please ignore this email. This link will expire in 30 minutes.
+              Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez ignorer cet e-mail. Ce lien expirera dans 30 minutes.
             </p>
             <p>
-              Thanks,<br/>
+              Merci,<br/>
               Kirasurf Support Team
             </p>
           </div>

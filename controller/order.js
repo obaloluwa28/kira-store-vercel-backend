@@ -43,17 +43,17 @@ router.post(
         const buyerEmailOptions = {
           email: user.email,
           subject:
-            "Order Placed Successfully - Thank You for Shopping with Us!",
+            "Commande passée avec succès - Merci d'avoir fait vos achats chez nous !",
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
               <h2 style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
-                Thank You for Your Order!
+                Merci pour votre commande!
               </h2>
               <p style="font-size: 16px; line-height: 1.5;">
-                Dear <strong>${user.name}</strong>,
+                Cher <strong>${user.name}</strong>,
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                We're thrilled to inform you that your order has been successfully placed. Below are the details of the items you’ve ordered:
+                Nous sommes ravis de vous informer que votre commande a été passée avec succès. Vous trouverez ci-dessous les détails des articles que vous avez commandés :
               </p>
               <ul style="font-size: 16px; line-height: 1.5; margin: 10px 0 20px; padding: 0; list-style-type: none;">
                 ${items
@@ -64,14 +64,14 @@ router.post(
                   .join("")}
               </ul>
               <p style="font-size: 16px; line-height: 1.5;">
-                Your order is being processed and will be shipped shortly. You will receive an update with tracking information as soon as your package is on its way.
+                Votre commande est en cours de traitement et sera expédiée sous peu. Vous recevrez une mise à jour avec les informations de suivi dès que votre colis sera en route.
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                Thank you for choosing us! If you have any questions or concerns, feel free to reach out to our support team.
+                Merci de nous avoir choisis ! Si vous avez des questions ou des préoccupations, n'hésitez pas à contacter notre équipe d'assistance.
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                Best regards,<br>
-                <strong>Kirasurf Support Team</strong>
+                Cordialement,<br>
+                <strong>Équipe d'assistance Kirasurf</strong>
               </p>
             </div>
           `,
@@ -83,17 +83,17 @@ router.post(
 
         const sellerEmailOptions = {
           email: shop.email,
-          subject: "New Order Received - Action Required",
+          subject: "Nouvelle commande reçue – Action requise",
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
               <h2 style="background-color: #e50000; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
-                New Order Notification
+                Notification de nouvelle commande
               </h2>
               <p style="font-size: 16px; line-height: 1.5;">
                 Dear <strong>${shop.name}</strong>,
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                You’ve received a new order! Here are the details of the items purchased:
+                Vous avez reçu une nouvelle commande ! Voici le détail des articles achetés :
               </p>
               <ul style="font-size: 16px; line-height: 1.5; margin: 10px 0 20px; padding: 0; list-style-type: none;">
                 ${items
@@ -104,14 +104,14 @@ router.post(
                   .join("")}
               </ul>
               <p style="font-size: 16px; line-height: 1.5;">
-                Please prepare these items for shipping and mark the order as processed in your seller dashboard as soon as possible.
+                Veuillez préparer ces articles pour l'expédition et marquer la commande comme traitée dans votre tableau de bord vendeur dès que possible.
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                Thank you for being an esteemed seller with us. If you have any questions, please don’t hesitate to contact our support team.
+                Merci d'être un vendeur estimé avec nous. Si vous avez des questions, n'hésitez pas à contacter notre équipe d'assistance.
               </p>
               <p style="font-size: 16px; line-height: 1.5;">
-                Best regards,<br>
-                <strong>Kirasurf Support Team</strong>
+                Cordialement,<br>
+                <strong>Équipe d'assistance Kirasurf</strong>
               </p>
             </div>
           `,

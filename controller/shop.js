@@ -49,31 +49,31 @@ router.post(
       try {
         const sellerEmailOptions = {
           email: seller.email,
-          subject: "Activate Your Shop's Account - Kirasurf Stores",
+          subject: "Activez le compte de votre boutique",
           html: `
                 <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eaeaea; border-radius: 10px;">
                   <h2 style="background-color: #4CAF50; color: white; padding: 15px; border-radius: 10px 10px 0 0; text-align: center; font-size: 24px;">
-                    Activate Your Shop Account
+                    Activez votre compte boutique
                   </h2>
                   <p style="font-size: 14px; line-height: 1.5;">
-                    Dear <strong>${seller.name}</strong>,
+                    Cher <strong>${seller.name}</strong>,
                   </p>
                   <p style="font-size: 14px; line-height: 1.5;">
-                    Welcome to <strong>Kirasurf Stores</strong>! You’re just one step away from activating your shop's account.
+                    Bienvenue dans les <strong>Kirasurf Stores</strong> ! Vous n'êtes qu'à une étape de l'activation du compte de votre boutique.
                   </p>
                   <p style="font-size: 14px; line-height: 1.5;">
-                    To activate your account and start selling, please click the button below:
+                    Pour activer votre compte et commencer à vendre, veuillez cliquer sur le bouton ci-dessous:
                   </p>
                   <div style="text-align: center; margin: 20px 0;">
                     <a href="${activationUrl}" style="background-color: #4CAF50; color: white; text-decoration: none; padding: 10px 20px; font-size: 14px; border-radius: 5px; display: inline-block;">
-                      Activate My Account
+                      Activer mon compte
                     </a>
                   </div>
                   <p style="font-size: 14px; line-height: 1.5;">
-                    Please note that this activation link is valid for the next 5 minutes. If the link expires, you will need to request a new one.
+                    Veuillez noter que ce lien d'activation est valable pour les 5 prochaines minutes. Si le lien expire, vous devrez en demander un nouveau.
                   </p>
                   <p style="font-size: 14px; line-height: 1.5;">
-                    We’re excited to have you on board! If you encounter any issues or need further assistance, feel free to contact our support team.
+                    Nous sommes ravis de vous compter à bord ! Si vous rencontrez des problèmes ou avez besoin d'aide supplémentaire, n'hésitez pas à contacter notre équipe d'assistance.
                   </p>
                   <p style="font-size: 14px; line-height: 1.5;">
                     Best regards,<br>
@@ -165,21 +165,21 @@ router.post(
 
       const emailOptions = {
         email: shop.email,
-        subject: "Shop Password Reset Request",
+        subject: "Demande de réinitialisation du mot de passe de la boutique",
         html: `
           <div style="font-family: Arial, sans-serif; font-size: 14px; color: #333; line-height: 1.5;">
-            <h2 style="color: #333;">Password Reset Request</h2>
+            <h2 style="color: #333;">Demande de réinitialisation du mot de passe</h2>
             <p style="margin-bottom: 20px;">
-              We received a request to reset your Store's password. Click the button below to reset it:
+              Nous avons reçu une demande de réinitialisation du mot de passe de votre boutique. Cliquez sur le bouton ci-dessous pour le réinitialiser :
             </p>
             <a href="${resetUrl}" style="display: inline-block; padding: 10px 20px; font-size: 14px; color: #fff; background-color: #007bff; text-decoration: none; border-radius: 5px;">
               Reset Password
             </a>
             <p style="margin-top: 20px;">
-              If you did not request a password reset, please ignore this email. This link will expire in 15 minutes.
+              Si vous n'avez pas demandé de réinitialisation de mot de passe, veuillez ignorer cet e-mail. Ce lien expirera dans 15 minutes.
             </p>
             <p>
-              Thanks,<br/>
+              Merci,<br/>
               Kirasurf Support Team
             </p>
           </div>
