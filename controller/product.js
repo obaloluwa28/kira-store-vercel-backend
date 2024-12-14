@@ -362,28 +362,132 @@ router.put(
 );
 
 // delete product of a shop
+// router.delete(
+//   "/delete-shop-product/:id",
+//   isSeller,
+//   catchAsyncErrors(async (req, res, next) => {
+//     try {
+//       const product = await Product.findByIdAndDelete(req.params.id);
+
+//       if (!product) {
+//         return next(new ErrorHandler("Product is not found with this id", 404));
+//       }
+
+//       for (let i = 0; 1 < product.images.length; i++) {
+//         const result = await cloudinary.v2.uploader.destroy(
+//           product.images[i].public_id
+//         );
+//       }
+
+//       await product.remove();
+
+//       res.status(201).json({
+//         success: true,
+//         message: "Product Deleted successfully!",
+//       });
+//     } catch (error) {
+//       return next(new ErrorHandler(error, 400));
+//     }
+//   })
+// );
+
+// delete product of a shop
 router.delete(
   "/delete-shop-product/:id",
   isSeller,
   catchAsyncErrors(async (req, res, next) => {
     try {
-      const product = await Product.findByIdAndDelete(req.params.id);
+      const product = await Product.findById(req.params.id);
 
       if (!product) {
         return next(new ErrorHandler("Product is not found with this id", 404));
       }
 
-      for (let i = 0; 1 < product.images.length; i++) {
-        const result = await cloudinary.v2.uploader.destroy(
-          product.images[i].public_id
-        );
+      // Delete each image from Cloudinary
+      for (let i = 0; i < product.images.length; i++) {
+        await cloudinary.v2.uploader.destroy(product.images[i].public_id);
       }
 
-      await product.remove();
+      // Delete the product from the database
+      await Product.findByIdAndDelete(req.params.id);
 
-      res.status(201).json({
+      res.status(200).json({
         success: true,
-        message: "Product Deleted successfully!",
+        message: "Product deleted successfully!",
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error, 400));
+    }
+  })
+);
+
+// admin delete product of a shop
+// router.delete(
+//   "/admin-delete-shop-product/:id",
+//   isAuthenticated,
+//   isAdmin("Admin"),
+//   catchAsyncErrors(async (req, res, next) => {
+//     try {
+//       const product = await Product.findByIdAndDelete(req.params.id);
+
+//       if (!product) {
+//         return next(new ErrorHandler("Product is not found with this id", 404));
+//       }
+
+//       for (let i = 0; 1 < product.images.length; i++) {
+//         const result = await cloudinary.v2.uploader.destroy(
+//           product.images[i].public_id
+//         );
+//       }
+
+//       await product.remove();
+
+//       const products = await Product.find().sort({
+//         createdAt: -1,
+//       });
+
+//       console.log(products);
+
+//       res.status(201).json({
+//         success: true,
+//         products,
+//         message: "Product Deleted successfully!",
+//       });
+//     } catch (error) {
+//       return next(new ErrorHandler(error, 400));
+//     }
+//   })
+// );
+
+router.delete(
+  "/admin-delete-shop-product/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const product = await Product.findById(req.params.id);
+
+      if (!product) {
+        return next(new ErrorHandler("Product is not found with this id", 404));
+      }
+
+      // Delete each image from Cloudinary
+      for (let i = 0; i < product.images.length; i++) {
+        await cloudinary.v2.uploader.destroy(product.images[i].public_id);
+      }
+
+      // Delete the product from the database
+      await Product.findByIdAndDelete(req.params.id);
+
+      // Fetch updated product list after deletion
+      const products = await Product.find().sort({ createdAt: -1 });
+
+      // console.log(products);
+
+      res.status(200).json({
+        success: true,
+        products,
+        message: "Product deleted successfully!",
       });
     } catch (error) {
       return next(new ErrorHandler(error, 400));
@@ -579,6 +683,45 @@ router.get(
       res.status(201).json({
         success: true,
         products,
+      });
+    } catch (error) {
+      return next(new ErrorHandler(error.message, 500));
+    }
+  })
+);
+
+// update a filed in the product collection
+router.put(
+  "/update-visibility/:id",
+  isAuthenticated,
+  isAdmin("Admin"),
+  catchAsyncErrors(async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { visibility } = req.body;
+
+      if (typeof visibility !== "number") {
+        return next(new ErrorHandler("Visibility must be a number.", 400));
+      }
+
+      // Update the visibility field of the product with the specified ID
+      const updatedProduct = await Product.findByIdAndUpdate(
+        id,
+        { $set: { visibility } },
+        { new: true, runValidators: true }
+      );
+
+      if (!updatedProduct) {
+        return next(new ErrorHandler("Product not found", 404));
+      }
+
+      // Fetch updated product list after deletion
+      const allProducts = await Product.find().sort({ createdAt: -1 });
+
+      res.status(200).json({
+        success: true,
+        message: "Visibility updated successfully",
+        product: allProducts,
       });
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));

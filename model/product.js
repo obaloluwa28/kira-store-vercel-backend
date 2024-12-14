@@ -53,14 +53,18 @@ const productSchema = new mongoose.Schema({
       productId: {
         type: String,
       },
-      createdAt:{
+      createdAt: {
         type: Date,
         default: Date.now(),
-      }
+      },
     },
   ],
   ratings: {
     type: Number,
+  },
+  visibility: {
+    type: Number,
+    required: [true, "Please enter product visibility!"],
   },
   shopId: {
     type: String,

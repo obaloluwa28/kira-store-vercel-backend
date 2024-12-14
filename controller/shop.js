@@ -411,9 +411,13 @@ router.delete(
       }
 
       await Shop.findByIdAndDelete(req.params.id);
+      const sellers = await Shop.find().sort({
+        createdAt: -1,
+      });
 
       res.status(201).json({
         success: true,
+        sellers,
         message: "Seller deleted successfully!",
       });
     } catch (error) {

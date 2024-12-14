@@ -55,21 +55,11 @@ router.post(
   })
 );
 
-// get all events
-router.get("/get-all-events", async (req, res, next) => {
-  try {
-    const events = await Event.find();
-    res.status(201).json({
-      success: true,
-      events,
-    });
-  } catch (error) {
-    return next(new ErrorHandler(error, 400));
-  }
-});
-
 // get all events of a shop
-router.get( "/get-all-events/:id", catchAsyncErrors(async (req, res, next) => {
+router.get(
+  "/get-all-events/:id",
+  isSeller,
+  catchAsyncErrors(async (req, res, next) => {
     try {
       const events = await Event.find({ shopId: req.params.id });
 
@@ -92,14 +82,14 @@ router.delete(
 
       if (!product) {
         return next(new ErrorHandler("Product is not found with this id", 404));
-      }    
+      }
 
       for (let i = 0; 1 < product.images.length; i++) {
         const result = await cloudinary.v2.uploader.destroy(
           event.images[i].public_id
         );
       }
-    
+
       await event.remove();
 
       res.status(201).json({

@@ -516,8 +516,13 @@ router.delete(
 
       await User.findByIdAndDelete(req.params.id);
 
+      const users = await User.find().sort({
+        createdAt: -1,
+      });
+
       res.status(201).json({
         success: true,
+        users,
         message: "User deleted successfully!",
       });
     } catch (error) {
